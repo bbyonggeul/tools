@@ -841,15 +841,15 @@ body::after {
       <label class="field-label">월 실수령액 (세후)</label>
       <span class="field-hint">매달 통장에 들어오는 실제 금액</span>
       <div class="money-input-wrap">
-        <input type="text" inputmode="numeric" class="money-input" id="income" value="400">
+        <input type="text" inputmode="numeric" class="money-input" id="income" value="350">
         <span class="money-unit">만원</span>
       </div>
     </div>
     <div class="field">
       <label class="field-label">지금 갖고 있는 종잣돈</label>
-      <span class="field-hint">장기 자산에 포함되는 금액입니다. 적금 만기될 거 포함해서 적어도 OK!</span>
+      <span class="field-hint">중기 자산에 포함되는 금액입니다. 적금 만기될 거 포함해서 적어도 OK!</span>
       <div class="money-input-wrap">
-        <input type="text" inputmode="numeric" class="money-input" id="seed" value="15,000">
+        <input type="text" inputmode="numeric" class="money-input" id="seed" value="5,000">
         <span class="money-unit">만원</span>
       </div>
     </div>
@@ -954,7 +954,7 @@ body::after {
         <div class="bucket-cell-label">중기 자산</div>
         <div class="bucket-cell-sub">결혼·전세·내 집</div>
         <div class="bucket-cell-row">
-          <input type="number" class="bucket-cell-input" id="bMid" value="60" min="0" max="100">
+          <input type="number" class="bucket-cell-input" id="bMid" value="55" min="0" max="100">
           <span class="bucket-cell-percent">%</span>
         </div>
       </div>
@@ -970,7 +970,7 @@ body::after {
         <div class="bucket-cell-label">생활·소비</div>
         <div class="bucket-cell-sub">월세·식비·여가</div>
         <div class="bucket-cell-row">
-          <input type="number" class="bucket-cell-input" id="bLife" value="25" min="0" max="100">
+          <input type="number" class="bucket-cell-input" id="bLife" value="30" min="0" max="100">
           <span class="bucket-cell-percent">%</span>
         </div>
       </div>
@@ -1017,16 +1017,16 @@ body::after {
 
   <div class="rate-input-box">
     <span class="rate-input-label">예상 수익률</span>
-    <input type="range" min="3" max="10" step="0.5" value="5" id="expectedRateSlider" class="rate-input-slider">
+    <input type="range" min="0" max="10" step="0.5" value="5" id="expectedRateSlider" class="rate-input-slider">
     <div class="rate-input-value-row">
-      <input type="number" id="expectedRateNum" min="3" max="10" step="0.5" value="5" class="rate-input-value">
+      <input type="number" id="expectedRateNum" min="0" max="10" step="0.5" value="5" class="rate-input-value">
       <span class="rate-input-percent">%</span>
     </div>
   </div>
 
   <div class="chart-box">
     <div class="chart-wrap"><canvas id="chart"></canvas></div>
-    <div class="chart-foot">중기·장기 같은 수익률 가정 · 슬라이더로 3%~10% 사이 직접 조정해보세요</div>
+    <div class="chart-foot">중기·장기 같은 수익률 가정 · 슬라이더로 0%~10% 사이 직접 조정해보세요</div>
   </div>
 </section>
 
@@ -1046,21 +1046,21 @@ body::after {
 </div>
 
 <div class="footer-note">
-  <span class="copyright-title">뿅글이 제작</span> · 이 도구는 강의 출발 템플릿 작성용이며, 실제 투자·세금 결정은 본인 판단과 전문가 상담을 거치세요.
+  <span class="copyright-title">© 뿅글이</span> 본 자료는 강의 수강생의 학습 목적으로만 사용 가능합니다. 무단 배포·복제·공유 시 저작권법에 따라 법적 조치 대상입니다.
 </div>
 
 </main>
 
 <script>
-const STORAGE_KEY = 'pyonggle_self_diag_v5';
+const STORAGE_KEY = 'pyonggle_self_diag_v6';
 
 const state = {
   events: [
     { name: '결혼', years: 4, amount: 2000 },
     { name: '내 집 마련 자금', years: 7, amount: 25000 }
   ],
-  income: 400, seed: 15000, emergencyNow: 300, emergencyTarget: 300,
-  bLong: 5, bMid: 60, bShort: 10, bLife: 25,
+  income: 350, seed: 5000, emergencyNow: 300, emergencyTarget: 300,
+  bLong: 5, bMid: 55, bShort: 10, bLife: 30,
   expectedRate: 5,
   risk: 'moderate', cashflow: 'stable', style: 'passive'
 };
@@ -1179,7 +1179,7 @@ document.querySelectorAll('input[type="radio"]').forEach(r => {
 const rateSlider = document.getElementById('expectedRateSlider');
 const rateNum = document.getElementById('expectedRateNum');
 function setExpectedRate(v) {
-  v = Math.max(3, Math.min(10, v));
+  v = Math.max(0, Math.min(10, v));
   state.expectedRate = v;
   rateSlider.value = v;
   rateNum.value = v;
@@ -1188,7 +1188,7 @@ function setExpectedRate(v) {
 rateSlider.addEventListener('input', e => setExpectedRate(+e.target.value));
 rateNum.addEventListener('input', e => {
   const v = +e.target.value;
-  if (v >= 3 && v <= 10) setExpectedRate(v);
+  if (v >= 0 && v <= 10) setExpectedRate(v);
 });
 rateNum.addEventListener('blur', e => {
   // 범위 벗어나면 클램프
@@ -1249,29 +1249,26 @@ function compute() {
     </div>`;
 
   const expectedRate = s.expectedRate / 100;
-  const eb = { short: [], mid: [], long: [] };
-  s.events.forEach(e => eb[bucketOf(e.years)].push(e));
 
-  // 중기 자산: 차트와 동일한 시뮬레이션으로 실제 부족분 계산
-  // (단순 합이 아니라, 이벤트 후 남은 돈이 계속 굴러가는 걸 반영)
-  let midShortage = 0;
+  // 모든 이벤트를 중기 자산 필요금액으로 합산
+  // 시뮬레이션: 종잣돈에서 시작 → 매년 적립·복리 → 이벤트 시점에 차감
+  // 최종 잔액이 양수면 "남음", 음수면 "부족"
+  let finalBal = s.seed;
   let midLastYear = 0;
-  if (eb.mid.length > 0) {
-    midLastYear = Math.max(...eb.mid.map(e => e.years));
-    let bal = 0;
+  if (s.events.length > 0) {
+    midLastYear = Math.max(...s.events.map(e => e.years));
+    let bal = s.seed;
     for (let y = 1; y <= midLastYear; y++) {
       bal = bal * (1 + expectedRate) + 12 * effectiveMid;
-      eb.mid.forEach(ev => {
-        if (ev.years === y) {
-          bal -= ev.amount;
-          if (bal < 0) { midShortage += -bal; bal = 0; }
-        }
+      s.events.forEach(ev => {
+        if (ev.years === y) bal -= ev.amount;  // 음수 허용
       });
     }
+    finalBal = bal;
   }
-  // 부족분을 채우려면 매달 얼마 추가로 모아야 하는지 (마지막 이벤트 시점 기준)
-  const midExtraNeeded = midShortage > 0 && midLastYear > 0
-    ? requiredMonthly(midShortage, midLastYear, expectedRate)
+  const midDeficit = finalBal < 0 ? -finalBal : 0;
+  const midExtraNeeded = midDeficit > 0 && midLastYear > 0
+    ? requiredMonthly(midDeficit, midLastYear, expectedRate)
     : 0;
 
   // 비상금 진단 메시지 (3 케이스)
@@ -1285,7 +1282,16 @@ function compute() {
     emergencyStatusHtml = `<span class="status short">부족 ${won(shortRequired - mShort)}</span>`;
   }
 
-  // 자산별 합계 점검 — 시뮬레이션 기반 진단
+  // 자산별 합계 점검 — 시뮬레이션 기반 진단 (부족/남음 모두 금액 표시)
+  let midStatusHtml;
+  if (finalBal > 0) {
+    midStatusHtml = `<span class="status ok">감당하고도 ${won(finalBal)} 남아요!</span>`;
+  } else if (finalBal < 0) {
+    midStatusHtml = `<span class="status short">${won(-finalBal)} 부족해요!</span>`;
+  } else {
+    midStatusHtml = `<span class="status ok">이벤트 다 감당할 수 있어요!</span>`;
+  }
+
   document.getElementById('bucketSummary').innerHTML = `
     <div class="bucket-summary-head">자산별 합계 점검</div>
     <div class="bucket-summary-row">
@@ -1296,12 +1302,10 @@ function compute() {
     <div class="bucket-summary-row">
       <span class="name">중기 자산</span>
       <span class="num">매달 ${won(effectiveMid)} 적립 (연 ${s.expectedRate}% 수익률 가정)</span>
-      <span class="status ${midShortage > 0 ? 'short' : 'ok'}">
-        ${midShortage > 0 ? '부족 ' + won(midShortage) : '이벤트 다 감당할 수 있어요!'}
-      </span>
+      ${midStatusHtml}
     </div>
     ${emergencyDone && mShort > 0 ? `<div class="emergency-done-note">비상금 다 채웠어요! 비상금 통 ${won(mShort)}이 중기 자산에 자동 합산됐어요</div>` : ''}
-    ${midShortage > 0 ? `<div class="mid-short-note">월 <strong>${won(midExtraNeeded)}</strong>을 추가로 모아야 이벤트 다 감당 가능해요. 수익률을 더 높이거나, 월급 외 수익으로 메우는 게 답이에요</div>` : ''}`;
+    ${midDeficit > 0 ? `<div class="mid-short-note">월 <strong>${won(midExtraNeeded)}</strong>을 추가로 모아야 이벤트 다 감당 가능해요. 수익률을 더 높이거나, 월급 외 수익으로 메우는 게 답이에요</div>` : ''}`;
 
   drawChart(effectiveShort, effectiveMid, mLong, s.seed, s.emergencyNow, s.emergencyTarget, expectedRate, s.events);
   renderTemplate();
@@ -1311,8 +1315,8 @@ function drawChart(mShort, mMid, mLong, seed, emNow, emTarget, expectedRate, eve
   // 매년 시뮬레이션 — 적립 + 복리 + 이벤트 소진을 정확하게 반영
   // 1년 단위 모델: 연초 잔액 × (1+r) + 그해 적립(12 × 월적립) − 그해 발생한 이벤트 지출
   const allYears = [];
-  let midBal = 0;
-  let longBal = seed;
+  let midBal = seed;  // 종잣돈은 중기 자산 시작값
+  let longBal = 0;    // 장기는 0에서 시작
   const midData = [midBal];
   const longData = [longBal];
 
@@ -1320,13 +1324,9 @@ function drawChart(mShort, mMid, mLong, seed, emNow, emTarget, expectedRate, eve
     midBal = midBal * (1 + expectedRate) + 12 * mMid;
     longBal = longBal * (1 + expectedRate) + 12 * mLong;
 
-    // 그 해에 발생한 이벤트 차감
+    // 그 해에 발생한 이벤트는 모두 중기 자산에서 차감
     events.forEach(e => {
-      if (e.years === y) {
-        const b = bucketOf(e.years);
-        if (b === 'mid') midBal -= e.amount;
-        else if (b === 'long') longBal -= e.amount;
-      }
+      if (e.years === y) midBal -= e.amount;
     });
     midBal = Math.max(0, midBal);
     longBal = Math.max(0, longBal);
